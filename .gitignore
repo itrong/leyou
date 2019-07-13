@@ -1,3 +1,6 @@
 
 leyou-master/.idea
-ly-registry/target
+*/target
+*/*/target
+
+
