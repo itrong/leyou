@@ -1,189 +1,162 @@
-<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-  <div>
+<template>
+  <v-card>
+    <v-card-title>
+      <v-btn @click="addBrand" color="primary">新增品牌</v-btn>
+      <v-spacer/>
+      <v-text-field
+        append-icon="search"
+        label="搜索"
+        single-line
+        hide-details
+        v-model="search"
+      />
+    </v-card-title>
+    <v-divider/>
     <v-data-table
       :headers="headers"
-      :items="desserts"
+      :items="items"
       :pagination.sync="pagination"
-      :total-items="totalDesserts"
+      :total-items="totalItems"
       :loading="loading"
       class="elevation-1"
     >
-      <template v-slot:items="props">
-        <td>{{ props.item.name }}</td>
-        <td class="text-xs-right">{{ props.item.calories }}</td>
-        <td class="text-xs-right">{{ props.item.fat }}</td>
-        <td class="text-xs-right">{{ props.item.carbs }}</td>
-        <td class="text-xs-right">{{ props.item.protein }}</td>
-        <td class="text-xs-right">{{ props.item.iron }}</td>
+      <template slot="items" slot-scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img v-if="!!props.item.image" width="102" height="36" :src="props.item.image"/></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="justify-center layout px-0">
+          <v-btn icon @click="editBrand(props.item)">
+            <i class="el-icon-edit"/>
+          </v-btn>
+          <v-btn icon @click="deleteBrand(props.item)">
+            <i class="el-icon-delete"/>
+          </v-btn>
+        </td>
+      </template>
+      <template slot="expand" slot-scope="props">
+        <v-card flat>
+          <v-card-text>Peek-a-boo!</v-card-text>
+        </v-card>
+      </template>
+      <template slot="no-data">
+        <v-alert :value="true" color="error" icon="warning">
+          对不起，没有查询到任何数据 :(
+        </v-alert>
+      </template>
+      <template slot="pageText" slot-scope="props">
+        共{{props.itemsLength}}条,当前:{{ props.pageStart }} - {{ props.pageStop }}
       </template>
     </v-data-table>
-  </div>
+
+    <v-dialog v-model="show" max-width="600" scrollable v-if="show">
+      <v-card>
+        <v-toolbar dark dense color="primary">
+          <v-toolbar-title>{{isEdit ? '修改品牌' : '新增品牌'}}</v-toolbar-title>
+          <v-spacer/>
+          <v-btn icon @click="show = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text class="px-5 py-2">
+          <!-- 表单 -->
+          <brand-form :oldBrand="brand" :isEdit="isEdit" @close="show = false" :reload="getDataFromApi"/>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </v-card>
+
 </template>
 
 <script>
+  import BrandForm from './BrandForm'
+  import {brandData} from '../../mockDB'
+
   export default {
+    name: "brand",
+    components: {
+      BrandForm
+    },
     data() {
       return {
-        totalDesserts: 0,
-        desserts: [],
+        search: '',// 过滤字段
+        totalItems: 0,// 总条数
+        items: [],// 表格数据
         loading: true,
-        pagination: {},
-        headers: [
-          {
-            text: 'Dessert (100g serving)',
-            align: 'left',
-            sortable: false,
-            value: 'name'
-          },
-          {text: 'Calories', value: 'calories'},
-          {text: 'Fat (g)', value: 'fat'},
-          {text: 'Carbs (g)', value: 'carbs'},
-          {text: 'Protein (g)', value: 'protein'},
-          {text: 'Iron (%)', value: 'iron'}
-        ]
+        pagination: {},// 分页信息
+        headers: [// 表头
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,},
+          {text: '操作', align: 'center', value: 'id', sortable: false}
+        ],
+        show: false,// 是否弹出窗口
+        brand: {}, // 品牌信息
+        isEdit: false // 判断是编辑还是新增
       }
     },
     watch: {
       pagination: {
         handler() {
-          this.getDataFromApi()
-            .then(data => {
-              this.desserts = data.items
-              this.totalDesserts = data.total
-            })
+          this.getDataFromApi();
         },
         deep: true
+      },
+      search: {
+        handler() {
+          this.getDataFromApi();
+        }
+      },
+      show(val, oldVal) {
+        // 表单关闭后重新加载数据
+        if (oldVal) {
+          this.getDataFromApi();
+        }
       }
     },
     mounted() {
-      this.getDataFromApi()
-        .then(data => {
-          this.desserts = data.items
-          this.totalDesserts = data.total
-        })
+      this.getDataFromApi();
     },
     methods: {
-      getDataFromApi() {
-        this.loading = true
-        return new Promise((resolve, reject) => {
-          const {sortBy, descending, page, rowsPerPage} = this.pagination
-
-          let items = this.getDesserts()
-          const total = items.length
-
-          if (this.pagination.sortBy) {
-            items = items.sort((a, b) => {
-              const sortA = a[sortBy]
-              const sortB = b[sortBy]
-
-              if (descending) {
-                if (sortA < sortB) return 1
-                if (sortA > sortB) return -1
-                return 0
-              } else {
-                if (sortA < sortB) return -1
-                if (sortA > sortB) return 1
-                return 0
-              }
-            })
-          }
-
-          if (rowsPerPage > 0) {
-            items = items.slice((page - 1) * rowsPerPage, page * rowsPerPage)
-          }
-
-          setTimeout(() => {
-            this.loading = false
-            resolve({
-              items,
-              total
-            })
-          }, 1000)
-        })
+      addBrand() {
+        this.brand = {};
+        this.isEdit = false;
+        this.show = true;
       },
-      getDesserts() {
-        return [
-          {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-            iron: '1%'
-          },
-          {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-            iron: '1%'
-          },
-          {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-            iron: '7%'
-          },
-          {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-            iron: '8%'
-          },
-          {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-            iron: '16%'
-          },
-          {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-            iron: '0%'
-          },
-          {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-            iron: '2%'
-          },
-          {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-            iron: '45%'
-          },
-          {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-            iron: '22%'
-          },
-          {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-            iron: '6%'
-          }
-        ]
+      editBrand(item) {
+        this.brand = item;
+        this.isEdit = true;
+        this.show = true;
+        // 查询商品分类信息，进行回显
+        this.$http.get("/item/category/bid/" + item.id)
+          .then(resp => {
+            this.brand.categories = resp.data;
+          })
+
+      },
+      deleteBrand(item) {
+        this.$message.confirm('此操作将永久删除该品牌, 是否继续?').then(() => {
+          // 发起删除请求
+          this.$http.delete("/item/brand?id=" + item.id,)
+            .then(() => {
+              // 删除成功，重新加载数据
+              this.$message.success("删除成功！");
+              this.getDataFromApi();
+            })
+        }).catch(() => {
+          this.$message.info("删除已取消！");
+        });
+
+      },
+      getDataFromApi() {
+        this.loading = true;
+        // 200ms后返回假数据
+        window.setTimeout(() => {
+          this.items = brandData.slice(0,4);
+          this.totalItems = 100
+          this.loading = false;
+        }, 200)
       }
     }
   }

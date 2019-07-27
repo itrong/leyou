@@ -1,10 +1,12 @@
 <template>
-    <div>promotion</div>
+    <div>
+      促销管理
+    </div>
 </template>
 
 <script>
     export default {
-        name: "Promotion"
+        name: "promotion"
     }
 </script>
 

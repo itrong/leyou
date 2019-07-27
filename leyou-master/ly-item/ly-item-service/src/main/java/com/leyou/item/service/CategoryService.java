@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface CategoryService {
 
-    //查询商品分类叔
+    //查询商品分查询
     List<Category> queryCategoryListByParentId(Long pid);
 }

@@ -14,6 +14,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+    /**
+     * 根据父节点id查商品分类
+     */
     @Override
     public List<Category> queryCategoryListByParentId(Long pid) {
         Category record = new Category();

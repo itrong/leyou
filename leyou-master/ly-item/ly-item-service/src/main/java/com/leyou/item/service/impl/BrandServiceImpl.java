@@ -17,6 +17,10 @@ public class BrandServiceImpl implements BrandService {
     @Autowired
     private BrandMapper brandMapper;
 
+
+    /**
+     * 品牌列表分页查询
+     */
     @Override
     public PageResult<Brand> queryBrandByPageAndSort(Integer page, Integer rows, String sortBy, Boolean desc, String key) {
         // 开始分页

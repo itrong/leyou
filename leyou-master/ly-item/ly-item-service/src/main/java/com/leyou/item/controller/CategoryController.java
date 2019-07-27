@@ -21,6 +21,12 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+
+    /**
+     * 根据父节点id查商品分类
+     *
+     * @param pid 父节点id
+     */
     @GetMapping ("list")
     public ResponseEntity<List<Category>> queryCategoryListByParentId(@RequestParam(value = "pid", defaultValue = "0") Long pid) {
 
