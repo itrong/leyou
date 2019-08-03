@@ -2,7 +2,7 @@
   "name": "leyou-manage-web",
   "version": "1.0.0",
   "description": "A Vue.js project",
-  "author": "huge0612 <huyi612@163.com>",
+  "author": "rongge",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
@@ -14,7 +14,7 @@
     "echarts": "^4.1.0",
     "element-ui": "^2.3.2",
     "iview": "^2.11.0",
-    "qs": "^6.5.1",
+    "qs": "^6.7.0",
     "vue": "^2.5.2",
     "vue-quill-editor": "^3.0.5",
     "vue-router": "^3.0.1",

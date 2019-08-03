@@ -8,10 +8,9 @@
       </v-list-tile-avatar>
       <v-list-tile-content>
         <v-list-tile-title v-show="!beginEdit">
-          <span >{{model.name}}</span>
+          <span>{{model.name}}</span>
         </v-list-tile-title>
-        <input v-show="beginEdit" @click.stop="" :ref="model.id" v-model="model.name"
-               @blur="afterEdit" @keydown.enter="afterEdit"/>
+        <input v-show="beginEdit" @click.stop="" v-model="model.name" @blur="afterEdit" @keydown.enter="afterEdit"/>
       </v-list-tile-content>
       <v-list-tile-action v-if="isEdit">
         <v-btn icon @mouseover="c1='primary'" @mouseout="c1=''" :color="c1" @click.stop="addChild">
@@ -41,8 +40,9 @@
         :nodes="nodes"
         :parentState="open"
         @handleAdd="handleAdd"
-        @handleEdit="handleEdit"
         @handleDelete="handleDelete"
+        @handleEdit="handleEdit"
+        @handleGet="handleGet"
         @handleClick="handleClick"
       >
       </tree-item>
@@ -63,7 +63,7 @@
         default: false
       },
       nodes: Object,
-      parentState:Boolean
+      parentState: Boolean
     },
     created() {
     },
@@ -73,13 +73,13 @@
         c2: '',
         c3: '',
         isSelected: false,
-        open:false,
-        beginEdit:false
+        open: false,
+        beginEdit: false
       }
     },
-    watch:{
-      parentState(val){
-        if(!val){
+    watch: {
+      parentState(val) {
+        if (!val) {
           this.open = val;
         }
       }
@@ -98,14 +98,12 @@
         this.isSelected = true;
         // 保存当前选中项
         this.nodes.selected = this
-
         // 客户自己的点击事件回调
         this.handleClick(this.model);
-
         // 判断是否为顶级节点，顶级节点需要记录和替换
-        if(this.model.parentId == 0){
+        if (this.model.parentId == 0) {
           // 判断打开节点是否是自己
-          if(this.nodes.opened && this != this.nodes.opened){
+          if (this.nodes.opened && this != this.nodes.opened) {
             // 不是，则关闭原来的节点
             this.nodes.opened.open = false;
           }
@@ -114,51 +112,37 @@
         }
         // 切换开闭状态
         this.open = !this.open;
-        // 如果已经是叶子节点,或者自己是关闭的，或者自己已经有儿子了，结束
-        if (!this.model.isParent || this.isFolder || !this.open) {
+        // 如果已经是叶子节点,结束
+        if (!this.model.isParent) {
           return;
         }
-        // 展开后查询子节点
-        this.$http.get(this.url, {params: {pid: this.model.id}})
-          .then(resp => {
-          Vue.set(this.model, 'children', resp.data);
-          // 封装当前节点的路径
-          this.model.children.forEach(n => {
-            n['path'] = [];
-            this.model.path.forEach(p => n['path'].push(p));
-            n['path'].push(n.name);
-          });
-        }).catch( e => {
-          console.log(e);
-        });
+        // 如果自己是关闭的，移除子节点数据结束
+        if (!this.open) {
+          Vue.set(this.model, 'children', null);
+          return;
+        }
+        //获取子节点数据
+        this.handleGet(this.model.id);
       },
       addChild: function () {
-        let child = {
-          id: 0,
-          name: '新的节点',
-          parentId: this.model.id,
-          isParent: false,
-          sort:this.model.children? this.model.children.length + 1:1
-        }
-        if (!this.model.isParent) {
-          Vue.set(this.model, 'children', [child]);
-          this.model.isParent = true;
-          this.open = true;
-          this.handleAdd(child);
-        } else {
-          if (!this.isFolder) {
-            this.$http.get(this.url, {params: {pid: this.model.id}}).then(resp => {
-              Vue.set(this.model, 'children', resp.data);
-              this.model.children.push(child);
-              this.open = true;
-              this.handleAdd(child);
-            });
-          } else {
-            this.model.children.push(child);
-            this.open = true;
-            this.handleAdd(child);
+        this.handleAdd(this.model);
+        // 判断是否为顶级节点，顶级节点需要记录和替换
+        if (this.model.parentId == 0) {
+          // 判断打开节点是否是自己
+          if (this.nodes.opened && this != this.nodes.opened) {
+            // 不是，则关闭原来的节点
+            this.nodes.opened.open = false;
           }
+          // 将自己记录为打开的节点
+          this.nodes.opened = this;
         }
+        //判断是否为叶子节点
+        if (!this.model.isParent) {
+          this.model.isParent = true;
+          Vue.set(this.model, 'children', this.model.children);
+        }
+        // 切换开闭状态
+        this.open = true;
       },
       deleteChild: function () {
         this.$message.confirm('此操作将永久删除数据，是否继续?', '提示', {
@@ -166,33 +150,44 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.handleDelete(this.model.id);
-        }).catch(()=>{
+          this.handleDelete(this.model);
+        }).catch(() => {
           this.$message.info('已取消删除');
         })
-
       },
       editChild() {
         this.beginEdit = true;
-        this.$nextTick(() => this.$refs[this.model.id].focus());
       },
       afterEdit() {
-        if (this.model.beginEdit) {
+        if (this.beginEdit) {
           this.beginEdit = false;
-          this.handleEdit(this.model.id, this.model.name);
+          this.handleEdit(this.getSimpleNode(this.model));
         }
       },
       handleAdd(node) {
-        this.$emit("handleAdd", node);
+        this.$emit("handleAdd", this.getSimpleNode(node));
       },
       handleDelete(id) {
         this.$emit("handleDelete", id);
       },
-      handleEdit(id, name) {
-        this.$emit("handleEdit", id, name)
+      handleEdit(node) {
+        this.$emit("handleEdit", this.getSimpleNode(node))
+      },
+      handleGet(id) {
+        Vue.set(this.model, 'children', this.model.children);
+        this.$emit("handleGet", id)
       },
       handleClick(node) {
-        this.$emit("handleClick", node);
+        this.$emit("handleClick", this.getSimpleNode(node));
+      },
+      getSimpleNode(node) {
+        return {
+          id: node.id,
+          name: node.name,
+          parentId: node.parentId,
+          isParent: node.isParent,
+          sort: node.sort
+        }
       }
     }
   }
@@ -204,6 +199,6 @@
   }
 
   .selected {
-    background-color: rgba(105,184,249,0.75);
+    background-color: rgba(105, 184, 249, 0.75);
   }
 </style>

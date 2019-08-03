@@ -6,8 +6,9 @@
       :isEdit="isEdit"
       :nodes="nodes"
       @handleAdd="handleAdd"
-      @handleEdit="handleEdit"
       @handleDelete="handleDelete"
+      @handleEdit="handleEdit"
+      @handleGet="handleGet"
       @handleClick="handleClick"
     />
   </v-list>
@@ -24,16 +25,16 @@
         type: Boolean,
         default: false
       },
-      treeData:{
-        type:Array
+      treeData: {
+        type: Array
       }
     },
     data() {
       return {
         db: [],
-        nodes:{
-          opened:null,
-          selected:{isSelected:false}
+        nodes: {
+          opened: null,
+          selected: {isSelected: false}
         }
       }
     },
@@ -41,7 +42,7 @@
       TreeItem
     },
     created() {
-      if(this.treeData && this.treeData.length > 0){
+      if (this.treeData && this.treeData.length > 0) {
         this.db = this.treeData;
         return;
       }
@@ -49,44 +50,38 @@
     },
     methods: {
       getData() {
-        this.$http.get(this.url, {params: {pid: 0}}).then(resp => {
+        this.$http.get(this.url + 'list', {params: {pid: 0}}).then(resp => {
           this.db = resp.data;
-          this.db.forEach(n => n['path'] = [n.name])
         })
       },
       handleAdd(node) {
-        this.$emit("handleAdd", this.copyNodeInfo(node));
+        this.$emit("handleAdd", node);
       },
-      handleEdit(id, name) {
-        this.$emit("handleEdit", id, name)
+      handleDelete(node) {
+        this.$emit("handleDelete", node);
       },
-      handleDelete(id) {
-        this.deleteById(id, this.db);
-        this.$emit("handleDelete", id);
+      handleEdit(node) {
+        this.$emit("handleEdit", node)
       },
-      handleClick(node){
-        this.$emit("handleClick", this.copyNodeInfo(node))
+      handleGet(id) {
+        this.$emit("handleGet", id)
       },
-      // 根据id删除
-      deleteById(id, arr) {
+      handleClick(node) {
+        this.$emit("handleClick", node)
+      },
+      //设置子节点
+      setChildren(id, children, arr) {
         let src = arr || this.db;
         for (let i in src) {
-          let d = src[i];
-          if (d.id === id) {
-            src.splice(i, 1)
+          let d = src[i]
+          if (d.id == id) {
+            d.children = children;
             return;
           }
           if (d.children && d.children.length > 0) {
-            this.deleteById(id, d.children)
+            this.setChildren(id, children, d.children)
           }
         }
-      },
-      copyNodeInfo(node){
-        const o = {};
-        for(let i in node){
-          o[i] = node[i];
-        }
-        return o;
       }
     },
     watch: {}

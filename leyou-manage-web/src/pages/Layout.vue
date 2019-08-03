@@ -17,7 +17,7 @@
               <img src="../assets/2.jpeg">
             </v-list-tile-avatar>
             <v-list-tile-content>
-              <v-list-tile-title>虎哥</v-list-tile-title>
+              <v-list-tile-title>Singer</v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
         </v-list>
@@ -62,14 +62,14 @@
         <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"/>
       </v-btn>
       <!-- 切换黑暗主题 -->
-      <v-flex xs1>
-      <v-switch
-        :label="dark ? '暗黑' : '明亮'"
-        v-model="dark"
-        color="dark"
-        hide-details
-      />
-      </v-flex>
+<!--      <v-flex xs1>-->
+<!--      <v-switch-->
+<!--        :label="dark ? '暗黑' : '明亮'"-->
+<!--        v-model="dark"-->
+<!--        color="dark"-->
+<!--        hide-details-->
+<!--      />-->
+<!--      </v-flex>-->
       <!-- 顶部导航标题 -->
       <v-flex xs3></v-flex>
       <v-toolbar-title v-text="title"/>

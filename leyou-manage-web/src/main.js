@@ -11,9 +11,13 @@ import 'vuetify/dist/vuetify.min.css'
 import qs from 'qs'
 import 'element-ui/lib/theme-chalk/index.css';
 import './assets/material.css'
+import echarts from 'echarts'
+
 
 Vue.use(Vuetify, { theme: config.theme})
 Vue.use(MyComponent)
+
+Vue.prototype.$echarts = echarts;
 Vue.prototype.$qs = qs;
 
 Vue.config.productionTip = false
