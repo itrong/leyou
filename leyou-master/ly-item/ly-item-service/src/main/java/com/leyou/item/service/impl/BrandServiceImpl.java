@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.List;
+
 @Service
 public class BrandServiceImpl implements BrandService {
 
@@ -43,6 +45,20 @@ public class BrandServiceImpl implements BrandService {
 
     }
 
+
+    /**
+     * 保存品牌信息
+     */
+    @Override
+    public void saveBrand(Brand brand, List<Long> cids) {
+
+        //insertSelective编译sql语句时只插入有值的字段
+        brandMapper.insertSelective(brand);
+        //维护品牌商品中间表
+        for (Long cid : cids) {
+            this.brandMapper.insertCategoryBrand(cid, brand.getId());
+        }
+    }
 
 
 }

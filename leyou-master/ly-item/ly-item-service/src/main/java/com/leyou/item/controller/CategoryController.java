@@ -44,9 +44,9 @@ public class CategoryController {
             return ResponseEntity.ok(categoryList);
         } catch (Exception e) {
             e.printStackTrace();
+            // 响应500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        // 响应500
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
 
