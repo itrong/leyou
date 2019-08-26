@@ -34,16 +34,6 @@
           </v-btn>
         </td>
       </template>
-      <template slot="expand" slot-scope="props">
-        <v-card flat>
-          <v-card-text>Peek-a-boo!</v-card-text>
-        </v-card>
-      </template>
-      <template slot="no-data">
-        <v-alert :value="true" color="error" icon="warning">
-          对不起，没有查询到任何数据 :(
-        </v-alert>
-      </template>
       <template slot="pageText" slot-scope="props">
         共{{props.itemsLength}}条,当前:{{ props.pageStart }} - {{ props.pageStop }}
       </template>
@@ -83,7 +73,9 @@
         totalItems: 0,// 总条数
         items: [],// 表格数据
         loading: true,
-        pagination: {},// 分页信息
+        pagination: {
+          rowsPerPage: 10,
+        },// 分页信息
         headers: [// 表头
           {text: 'id', align: 'center', value: 'id'},
           {text: '名称', align: 'center', sortable: false, value: 'name'},
@@ -129,10 +121,12 @@
         this.isEdit = true;
         this.show = true;
         // 查询商品分类信息，进行回显
-        this.$http.get("/item/category/bid/" + item.id)
+        this.$http.get("/item/category/bid/?id=" + item.id)
           .then(resp => {
             this.brand.categories = resp.data;
-          })
+          }).catch(e => {
+            console.log(e)
+        })
 
       },
       deleteBrand(item) {
@@ -151,12 +145,21 @@
       },
       getDataFromApi() {
         this.loading = true;
-        // 200ms后返回假数据
-        window.setTimeout(() => {
-          this.items = brandData.slice(0,4);
-          this.totalItems = 100
+        this.$http.get("/item/brand/page", {
+          params: {
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+          }
+        }).then(resp => { // 这里使用箭头函数
+          // 将得到的数据赋值给本地属性
+          this.items = resp.data.items;
+          this.totalItems = resp.data.total;
+          // 完成赋值后，把加载状态赋值为false
           this.loading = false;
-        }, 200)
+        })
       }
     }
   }

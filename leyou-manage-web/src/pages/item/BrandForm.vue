@@ -36,6 +36,7 @@
 
 <script>
   import config from '@/config';
+
   export default {
     name: "brand-form",
     props: {
@@ -52,21 +53,21 @@
     data() {
       return {
         baseUrl: config.api,
-        valid:false,
+        valid: false,
         brand: {
           name: "",
           image: "",
           letter: "",
           categories: []
         },
-        imageDialogVisible:false
+        imageDialogVisible: false
       }
     },
     watch: {
-      oldBrand:{
-        deep:true,
-        handler(val){
-          Object.deepCopy(val,this.brand);
+      oldBrand: {
+        deep: true,
+        handler(val) {
+          Object.deepCopy(val, this.brand);
         }
       }
     },
@@ -74,13 +75,19 @@
       submit() {
         // 表单校验
         if (this.$refs.brandForm.validate()) {
-          this.brand.categories = this.brand.categories.map(c => c.id);
-          this.brand.letter = this.brand.letter.toUpperCase();
+          // 2、定义一个请求参数对象，通过解构表达式来获取brand中的属性
+          const {categories ,letter ,...params} = this.brand;
+          // 3、数据库中只要保存分类的id即可，因此我们对categories的值进行处理,只保留id，并转为字符串
+          params.categories = categories.map(c => c.id).join(",");
+          // 4、将字母都处理为大写
+          params.letter = letter.toUpperCase();
+          // 5、将数据提交到后台
+          confirm("aaa")
           // 将数据提交到后台
           this.$http({
             method: this.isEdit ? 'put' : 'post',
             url: '/item/brand',
-            data: this.$qs.stringify(this.brand)
+            data: this.$qs.stringify(params)
           }).then(() => {
             // 关闭窗口
             this.$message.success("保存成功！");
@@ -99,10 +106,10 @@
       handleImageSuccess(res) {
         this.brand.image = res;
       },
-      removeImage(){
+      removeImage() {
         this.brand.image = "";
       },
-      closeWindow(){
+      closeWindow() {
         this.$emit("close");
       }
     }
