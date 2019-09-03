@@ -20,4 +20,6 @@ public interface CategoryService {
 
     //编辑品牌
     void editCategory(Category category);
+
+    List<Category> queryByBrandId(Long id);
 }

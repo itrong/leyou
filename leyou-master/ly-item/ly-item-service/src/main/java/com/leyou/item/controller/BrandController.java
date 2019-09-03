@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -47,13 +44,11 @@ public class BrandController {
      * 新增品牌
      *
      * @param brand 品牌信息
-     * @return
      */
     @PostMapping
     public ResponseEntity<Void> saveBrand(Brand brand, @RequestParam(value = "categories") List<Long> categories) {
 
         try {
-
             //保存品牌信息
             this.brandService.saveBrand(brand, categories);
             // 响应201
@@ -63,9 +58,65 @@ public class BrandController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
 
+    /**
+     * 根据id查询品牌信息
+     *
+     * @param id 品牌id
+     */
+    @GetMapping("bid")
+    public ResponseEntity<Brand> queryByBid(@RequestParam(value = "id") Long id) {
 
+        try {
+            //保存品牌信息
+            Brand brand = this.brandService.queryByBid(id);
+            // 返回品牌
+            return ResponseEntity.ok(brand);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 
+    /**
+     * 编辑品牌
+     *
+     * @param brand 品牌信息
+     * @param categories 分类id
+     */
+    @PutMapping
+    public ResponseEntity<Void> editBrand(Brand brand, @RequestParam(value = "categories") List<Long> categories) {
+
+        try {
+            //保存品牌信息
+            this.brandService.editBrand(brand, categories);
+            // 响应201
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 删除品牌
+     *
+     * @param id 品牌id
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> deleteBrand(@RequestParam(value = "id") Long id) {
+
+        try {
+            //删除品牌信息
+            this.brandService.deleteBrand(id);
+            // 响应201
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

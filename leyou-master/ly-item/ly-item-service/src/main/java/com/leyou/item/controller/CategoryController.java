@@ -1,5 +1,6 @@
 package com.leyou.item.controller;
 
+import com.leyou.item.pojo.Brand;
 import com.leyou.item.pojo.Category;
 import com.leyou.item.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +115,26 @@ public class CategoryController {
             categoryService.editCategory(category);
             // 响应201
             return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // 响应500
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+    /**
+     * 根据品牌获得分类列表
+     *
+     * @param id 品牌id
+     * @return
+     */
+    @GetMapping("bid")
+    public ResponseEntity<List<Category>> queryByBrandId(@RequestParam(value = "id") Long id) {
+
+        try {
+            //根据品牌获得分类列表
+            List<Category> categories = this.categoryService.queryByBrandId(id);
+            // 响应201
+            return ResponseEntity.ok(categories);
         } catch (Exception e) {
             e.printStackTrace();
         }

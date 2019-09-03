@@ -39,7 +39,7 @@
       </template>
     </v-data-table>
 
-    <v-dialog v-model="show" max-width="600" scrollable v-if="show">
+    <v-dialog v-model="show" max-width="600" scrollable>
       <v-card>
         <v-toolbar dark dense color="primary">
           <v-toolbar-title>{{isEdit ? '修改品牌' : '新增品牌'}}</v-toolbar-title>
@@ -117,13 +117,14 @@
         this.show = true;
       },
       editBrand(item) {
-        this.brand = item;
-        this.isEdit = true;
-        this.show = true;
         // 查询商品分类信息，进行回显
-        this.$http.get("/item/category/bid/?id=" + item.id)
+        this.$http.get("/item/category/bid?id=" + item.id)
           .then(resp => {
+            this.brand = item;
             this.brand.categories = resp.data;
+            this.isEdit = true;
+            this.show = true;
+
           }).catch(e => {
             console.log(e)
         })

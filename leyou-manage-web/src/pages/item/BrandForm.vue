@@ -23,7 +23,7 @@
       </v-flex>
       <v-flex>
         <v-upload
-          v-model="brand.image" url="/item/upload" :multiple="false" :pic-width="250" :pic-height="90"
+          v-model="brand.image" url="/upload/image" :multiple="false" :pic-width="250" :pic-height="90"
         />
       </v-flex>
     </v-layout>
@@ -67,22 +67,33 @@
       oldBrand: {
         deep: true,
         handler(val) {
-          Object.deepCopy(val, this.brand);
+          if (val) {
+            // 注意不要直接复制，否则这边的修改会影响到父组件的数据，copy属性即可
+            this.brand = Object.deepCopy(val)
+          } else {
+            // 为空，初始化brand
+            this.brand = {
+              name: '',
+              letter: '',
+              image: '',
+              categories: [],
+            }
+          }
         }
       }
     },
     methods: {
       submit() {
+
         // 表单校验
         if (this.$refs.brandForm.validate()) {
           // 2、定义一个请求参数对象，通过解构表达式来获取brand中的属性
-          const {categories ,letter ,...params} = this.brand;
+          const {categories, letter, ...params} = this.brand;
           // 3、数据库中只要保存分类的id即可，因此我们对categories的值进行处理,只保留id，并转为字符串
           params.categories = categories.map(c => c.id).join(",");
           // 4、将字母都处理为大写
           params.letter = letter.toUpperCase();
           // 5、将数据提交到后台
-          confirm("aaa")
           // 将数据提交到后台
           this.$http({
             method: this.isEdit ? 'put' : 'post',

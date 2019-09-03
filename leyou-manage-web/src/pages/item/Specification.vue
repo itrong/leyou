@@ -2,9 +2,11 @@
   <v-card>
     <v-flex xs12 sm10>
       <v-card-title>选择分类，查看规格参数模板：</v-card-title>
-      <v-tree url="/item/category/list"
+      <v-tree ref="child"
+              :url="url"
               :isEdit="false"
               @handleClick="handleClick"
+              @handleGet="handleGet"
       />
       <v-dialog v-model="dialog" width="660px" scrollable persistent>
         <v-card>
@@ -51,7 +53,7 @@
                             </v-layout>
                             <v-layout row>
                               <v-checkbox color="success" v-model="param.numerical" label="是否数值类型"/>
-                              <v-text-field v-show="param.numerical" label="计量单位" v-model="param.unit" />
+                              <v-text-field v-show="param.numerical" label="计量单位" v-model="param.unit"/>
                             </v-layout>
                             <v-card-text v-if="param.options.length > 0">
                               <v-layout row v-for="j in param.options.length" :key="j">
@@ -107,18 +109,19 @@
 
 <script>
   import config from '../../config'
-//  import {treeData,phoneSpec} from "../../mockDB";
+  // import {treeData,phoneSpec} from "../../mockDB";
 
   export default {
     name: "v-template",
     data() {
       return {
+        url: '/item/category/',
         specifications: [], // 当前分类的规格参数信息
         oldSpec: [],// 修改前的规格参数信息
         dialog: false, // 是否弹出对话框，默认是false，隐藏对话框
         currentNode: {},// 当前被选中的商品分类节点
         isInsert: false,// 新增或者修改
-        units:config.unitOption// 数值类型的可选单位
+        units: config.unitOption,// 数值类型的可选单位
         // treeData:treeData // 假的商品分类数据
       }
     },
@@ -158,6 +161,30 @@
             })
         }
       },
+      handleGet(id) {
+        console.log(id);
+        //获取子节点
+        this.$http.get(this.url + 'list', {params: {pid: id}})
+          .then(resp => {
+            this.$refs.child.setChildren(id, resp.data);
+          }).catch(e => {
+          console.log(e);
+        });
+      },
+      //设置子节点
+      setChildren(id, children, arr) {
+        let src = arr || this.db;
+        for (let i in src) {
+          let d = src[i]
+          if (d.id == id) {
+            d.children = children;
+            return;
+          }
+          if (d.children && d.children.length > 0) {
+            this.setChildren(id, children, d.children)
+          }
+        }
+      },
       addGroup() {
         this.specifications.push({
           group: '',
@@ -170,8 +197,8 @@
           k: "",
           searchable: false,
           global: true,
-          numerical:false,
-          unit:"",
+          numerical: false,
+          unit: "",
           options: []
         })
       },

@@ -81,10 +81,22 @@ public class CategoryServiceImpl implements CategoryService {
         categoryMapper.deleteByPrimaryKey(id);
     }
 
-    //编辑品牌
+
+    /**
+     * 编辑品牌
+     */
     @Override
     public void editCategory(Category category) {
         categoryMapper.updateByPrimaryKey(category);
+    }
+
+
+    /**
+     * 根据品牌获得分类列表
+     */
+    @Override
+    public List<Category> queryByBrandId(Long id) {
+        return categoryMapper.queryByBrandId(id);
     }
 
 

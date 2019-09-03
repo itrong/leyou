@@ -9,6 +9,7 @@ import com.leyou.item.service.BrandService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class BrandServiceImpl implements BrandService {
      * 保存品牌信息
      */
     @Override
+    @Transactional
     public void saveBrand(Brand brand, List<Long> cids) {
 
         //insertSelective编译sql语句时只插入有值的字段
@@ -58,6 +60,46 @@ public class BrandServiceImpl implements BrandService {
         for (Long cid : cids) {
             this.brandMapper.insertCategoryBrand(cid, brand.getId());
         }
+    }
+
+
+    /**
+     * 根据id查询品牌信息
+     */
+    @Override
+    public Brand queryByBid(Long id) {
+        Brand brand = brandMapper.selectByPrimaryKey(id);
+        return brand;
+    }
+
+
+    /**
+     * 修改品牌信息
+     */
+    @Override
+    @Transactional
+    public void editBrand(Brand brand, List<Long> categories) {
+
+        //insertSelective编译sql语句时只插入有值的字段
+        brandMapper.updateByPrimaryKey(brand);
+
+        //维护品牌商品中间表
+        brandMapper.deleteCategoryBrandByBrandId(brand.getId());
+        for (Long cid : categories) {
+            this.brandMapper.insertCategoryBrand(cid, brand.getId());
+        }
+
+    }
+
+
+    /**
+     * 删除品牌
+     */
+    @Override
+    @Transactional
+    public void deleteBrand(Long id) {
+        brandMapper.deleteByPrimaryKey(id);
+        brandMapper.deleteCategoryBrandByBrandId(id);
     }
 
 

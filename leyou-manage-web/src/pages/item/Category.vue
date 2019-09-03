@@ -2,7 +2,7 @@
   <v-card>
     <v-flex xs12 sm12>
       <v-tree ref="child"
-              url="/item/category/"
+              :url="url"
               :treeData="treeData"
               :isEdit="isEdit"
               @handleAdd="handleAdd"
