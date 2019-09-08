@@ -1,17 +1,16 @@
 package com.leyou.item.controller;
 
 import com.leyou.common.pojo.PageResult;
-import com.leyou.item.pojo.Brand;
+import com.leyou.item.po.Brand;
 import com.leyou.item.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("brand")
 public class BrandController {
 
@@ -119,4 +118,26 @@ public class BrandController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    /**
+     * 根据分类id查品牌
+     *
+     * @param id 品牌id
+     */
+    @GetMapping("cid/{id}")
+    public ResponseEntity<List<Brand>> queryByCategoryId(@PathVariable(value = "id") Long id) {
+
+        try {
+            //保存品牌信息
+            List<Brand> result = this.brandService.queryByCategoryId(id);
+            // 返回品牌
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 }

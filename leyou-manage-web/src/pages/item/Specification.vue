@@ -135,29 +135,30 @@
           // 如果是叶子节点，那么就发起ajax请求，去后台查询商品规格数据。
           this.$http.get("/item/spec/" + node.id)
             .then(resp => {
-              // 查询成功后，把响应结果赋值给specifications属性，Vue会进行自动渲染。
-              this.specifications = resp.data;
-              // 记录下此时的规格数据，当页面撤销修改时，用来恢复原始数据
-              this.oldSpec = resp.data;
-              // 打开弹窗
-              this.dialog = true;
-              // 标记此时要进行修改操作
-              this.isInsert = false;
-            })
-            .catch(() => {
-              // 如果没有查询成功，那么询问是否添加规格
-              this.$message.confirm('该分类还没有规格参数，是否添加?')
-                .then(() => {
-                  // 如果要添加，则将specifications初始化为空
-                  this.specifications = [{
-                    group: '',
-                    params: []
-                  }];
-                  // 打开弹窗
-                  this.dialog = true;
-                  // 标记为新增
-                  this.isInsert = true;
-                })
+              if (resp.data == "") {
+                // 如果查询结果为空，那么询问是否添加规格
+                this.$message.confirm('该分类还没有规格参数，是否添加?')
+                  .then(() => {
+                    // 如果要添加，则将specifications初始化为空
+                    this.specifications = [{
+                      group: '',
+                      params: []
+                    }];
+                    // 打开弹窗
+                    this.dialog = true;
+                    // 标记为新增
+                    this.isInsert = true;
+                  })
+              } else {
+                // 查询成功后，把响应结果赋值给specifications属性，Vue会进行自动渲染。
+                this.specifications = resp.data;
+                // 记录下此时的规格数据，当页面撤销修改时，用来恢复原始数据
+                this.oldSpec = resp.data;
+                // 打开弹窗
+                this.dialog = true;
+                // 标记此时要进行修改操作
+                this.isInsert = false;
+              }
             })
         }
       },
@@ -206,7 +207,7 @@
       addOption(i, j) {
         this.specifications[i].params[j].options.push("")
       },
-      // 修改模板
+      // 保存模板
       saveTemplate() {
         this.dialog = true;
         this.$http({

@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.leyou.common.pojo.PageResult;
 import com.leyou.item.mapper.BrandMapper;
-import com.leyou.item.pojo.Brand;
+import com.leyou.item.po.Brand;
 import com.leyou.item.service.BrandService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +100,15 @@ public class BrandServiceImpl implements BrandService {
     public void deleteBrand(Long id) {
         brandMapper.deleteByPrimaryKey(id);
         brandMapper.deleteCategoryBrandByBrandId(id);
+    }
+
+
+    /**
+     * 根据分类id查品牌
+     */
+    @Override
+    public List<Brand> queryByCategoryId(Long id) {
+        return brandMapper.queryByCategoryId(id);
     }
 
 

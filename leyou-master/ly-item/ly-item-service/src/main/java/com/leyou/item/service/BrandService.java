@@ -1,7 +1,7 @@
 package com.leyou.item.service;
 
 import com.leyou.common.pojo.PageResult;
-import com.leyou.item.pojo.Brand;
+import com.leyou.item.po.Brand;
 
 import java.util.List;
 
@@ -15,4 +15,6 @@ public interface BrandService {
     void editBrand(Brand brand, List<Long> categories);
 
     void deleteBrand(Long id);
+
+    List<Brand> queryByCategoryId(Long id);
 }

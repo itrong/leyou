@@ -1,17 +1,14 @@
 package com.leyou.item.service.impl;
 
 import com.leyou.item.mapper.CategoryMapper;
-import com.leyou.item.pojo.Category;
+import com.leyou.item.po.Category;
 import com.leyou.item.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -97,6 +94,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<Category> queryByBrandId(Long id) {
         return categoryMapper.queryByBrandId(id);
+    }
+
+    @Override
+    public List<String> queryNameByIds(List<Long> ids) {
+        return this.categoryMapper.selectByIdList(ids).stream().map(Category::getName).collect(Collectors.toList());
     }
 
 

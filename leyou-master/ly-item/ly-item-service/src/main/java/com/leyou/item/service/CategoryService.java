@@ -1,6 +1,6 @@
 package com.leyou.item.service;
 
-import com.leyou.item.pojo.Category;
+import com.leyou.item.po.Category;
 
 import java.util.List;
 
@@ -22,4 +22,6 @@ public interface CategoryService {
     void editCategory(Category category);
 
     List<Category> queryByBrandId(Long id);
+
+    List<String> queryNameByIds(List<Long> asList);
 }

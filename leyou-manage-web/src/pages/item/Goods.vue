@@ -39,8 +39,8 @@
       <template slot="items" slot-scope="props">
         <td class="text-xs-center">{{ props.item.id }}</td>
         <td class="text-xs-center">{{ props.item.title }}</td>
-        <td class="text-xs-center">{{ props.item.categoryName}}</td>
-        <td class="text-xs-center">{{ props.item.brandName }}</td>
+        <td class="text-xs-center">{{ props.item.cname}}</td>
+        <td class="text-xs-center">{{ props.item.bname }}</td>
         <td class="justify-center layout px-0">
           <v-btn icon small @click="editItem(props.item)">
             <i class="el-icon-edit"/>
@@ -62,7 +62,7 @@
       </template>
     </v-data-table>
 
-    <v-dialog v-if="show" v-model="show" max-width="900" scrollable persistent>
+    <v-dialog v-model="show" max-width="900" scrollable persistent>
       <v-card>
         <v-toolbar dense dark color="primary">
           <v-toolbar-title>{{isEdit ? '修改商品' : '新增商品'}}</v-toolbar-title>
@@ -108,7 +108,9 @@
         totalItems: 0,// 总条数
         items: [],// 表格数据
         loading: true,
-        pagination: {},// 分页信息
+        pagination: {
+          rowsPerPage: 11,
+        },// 分页信息
         headers: [// 表头
           {text: 'id', align: 'center', value: 'id'},
           {text: '标题', align: 'center', sortable: false, value: 'name'},
@@ -167,16 +169,19 @@
         this.show = true;
       },
       editItem(item) {
-        this.selectedGoods = item;
-        const names = item.categoryName.split("/");
-        this.selectedGoods.categories = [
-          {id: item.cid1, name: names[0]},
-          {id: item.cid2, name: names[1]},
-          {id: item.cid3, name: names[2]}
-        ];
+
         // 查询商品详情
-        this.$http.get("/item/goods/spu/detail/" + item.id)
+        this.$http.get("/item/spu/detail/" + item.id)
           .then(resp => {
+
+            this.selectedGoods = item;
+            const names = (item.cname || "").split("/");
+            this.selectedGoods.categories = [
+              {id: item.cid1, name: names[0]},
+              {id: item.cid2, name: names[1]},
+              {id: item.cid3, name: names[2]}
+            ];
+
             this.selectedGoods.spuDetail = resp.data;
             this.selectedGoods.spuDetail.specTemplate = JSON.parse(resp.data.specTemplate);
             this.selectedGoods.spuDetail.specifications = JSON.parse(resp.data.specifications);
@@ -202,12 +207,20 @@
       },
       getDataFromApi() {
         this.loading = true;
-        setTimeout(() => {
-          // 返回假数据
-          this.items = goodsData.slice(0, 4);
-          this.totalItems = 25;
+        // 发起请求
+        this.$http.get("/item/spu/page", {
+          params: {
+            key: this.search.key, // 搜索条件
+            saleable: this.search.saleable, // 上下架
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+          }
+        }).then(resp => { // 这里使用箭头函数
+          this.items = resp.data.items;
+          this.totalItems = resp.data.total;
+          // 完成赋值后，把加载状态赋值为false
           this.loading = false;
-        }, 300)
+        })
       }
     }
   }

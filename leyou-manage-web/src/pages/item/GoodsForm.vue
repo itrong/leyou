@@ -1,168 +1,170 @@
 <template>
-  <v-stepper :value="step">
-    <v-stepper-header>
-      <v-stepper-step step="1" :complete="step > 1">基本信息</v-stepper-step>
-      <v-divider/>
-      <v-stepper-step step="2" :complete="step > 2">商品描述</v-stepper-step>
-      <v-divider/>
-      <v-stepper-step step="3" :complete="step > 3">规格参数</v-stepper-step>
-      <v-divider/>
-      <v-stepper-step step="4">SKU属性</v-stepper-step>
-    </v-stepper-header>
-    <v-stepper-items>
-      <!--基本信息的表单-->
-      <v-stepper-content step="1">
-        <v-layout justify-center>
-          <v-flex xs10>
-            <v-form v-model="valid" ref="basic">
-              <v-layout row>
-                <v-flex xs5>
-                  <v-cascader url="/item/category/list" v-model="goods.categories"
-                              required show-all-levels label="商品分类"/>
-                </v-flex>
-                <v-flex offset-xs2 xs5>
-                  <v-select label="所属品牌" v-model="goods.brandId" :items="brandOptions" dense autocomplete
-                            item-text="name" item-value="id" :rules="[v => !!v || '品牌不能为空']" required/>
-                </v-flex>
-              </v-layout>
-
-              <v-text-field label="商品标题" v-model="goods.title" :counter="200" required
-                            :rules="[v => !!v || '商品标题不能为空']"/>
-              <v-text-field label="商品卖点" v-model="goods.subTitle" :counter="200"/>
-              <v-text-field label="包装清单" v-model="goods.spuDetail.packingList" :counter="1000" multi-line :rows="3"/>
-              <v-text-field label="售后服务" v-model="goods.spuDetail.afterService" :counter="1000" multi-line :rows="3"/>
-              <v-layout row>
-                <v-flex xs3>
-                </v-flex>
-                <v-flex>
-                </v-flex>
-              </v-layout>
-            </v-form>
-          </v-flex>
-        </v-layout>
-      </v-stepper-content>
-      <!--商品描述-->
-      <v-stepper-content step="2">
-        <quill-editor v-model="goods.spuDetail.description" :options="editorOption"/>
-      </v-stepper-content>
-      <!--规格参数-->
-      <v-stepper-content step="3">
-        <v-flex offset-xs1 xs10>
-          <v-card v-for="(spec, i1) in specifications" :key="i1" class="my-2" v-if="!spec.empty">
-            <v-card-title><h4>{{spec.group}}</h4></v-card-title>
-            <v-divider/>
-            <v-layout column justify-center>
-              <v-flex v-for="(param,i2) in spec.params" :key="i2" xs8>
-                <v-layout v-if="param.global" row>
-                  <v-flex offset-xs2 xs8>
-                    <v-text-field v-if="param.options.length <= 0" :suffix="param.unit || ''"
-                                  v-model="param.v" :label="param.k"/>
-                    <v-select v-else :label="param.k" v-model="param.v" :items="param.options"/>
-                  </v-flex>
-                </v-layout>
-              </v-flex>
-            </v-layout>
-          </v-card>
-        </v-flex>
-      </v-stepper-content>
-      <!--SKU属性-->
-      <v-stepper-content step="4">
-        <v-layout column>
-          <h3>sku属性：</h3>
-          <v-divider/>
-          <v-flex offset-xs1>
-            <div v-for="(t,i) in template" :key="i">
-              <h4>{{t.k}}:</h4>
-              <div class="px-5" v-if="t.options.length <= 0">
-                <!--默认项-->
+  <div>
+    <v-stepper :value="step">
+      <v-stepper-header>
+        <v-stepper-step step="1" :complete="step > 1">基本信息</v-stepper-step>
+        <v-divider/>
+        <v-stepper-step step="2" :complete="step > 2">商品描述</v-stepper-step>
+        <v-divider/>
+        <v-stepper-step step="3" :complete="step > 3">规格参数</v-stepper-step>
+        <v-divider/>
+        <v-stepper-step step="4">SKU属性</v-stepper-step>
+      </v-stepper-header>
+      <v-stepper-items>
+        <!--基本信息的表单-->
+        <v-stepper-content step="1">
+          <v-layout justify-center>
+            <v-flex xs10>
+              <v-form v-model="valid" ref="basic">
                 <v-layout row>
-                  <v-flex xs8>
-                    <v-text-field :label="`请输入新的${t.k}`" v-model="skuTemplate[i].options[0]"/>
+                  <v-flex xs5>
+                    <v-cascader url="/item/category/list" v-model="goods.categories"
+                                required show-all-levels label="商品分类"/>
                   </v-flex>
-                  <v-spacer/>
-                  <v-flex xs1>
-                    <v-btn icon small @click="deleteOption(i,0)"><i class="el-icon-delete"></i></v-btn>
-                  </v-flex>
-                </v-layout>
-                <!--其他项-->
-                <v-layout row v-for="i2 in skuTemplate[i].options.length" :key="i2">
-                  <v-flex xs8>
-                    <v-text-field :label="`请输入新的${t.k}`" v-model="skuTemplate[i].options[i2]"/>
-                  </v-flex>
-                  <v-spacer/>
-                  <v-flex xs1>
-                    <v-btn icon small @click="deleteOption(i,i2)"><i class="el-icon-delete"></i></v-btn>
+                  <v-flex offset-xs2 xs5>
+                    <v-select label="所属品牌" v-model="goods.brandId" :items="brandOptions" dense autocomplete
+                              item-text="name" item-value="id" :rules="[v => !!v || '品牌不能为空']" required/>
                   </v-flex>
                 </v-layout>
-              </div>
-              <div class="px-5" v-else>
-                <v-container fluid grid-list-xs>
-                  <v-layout row wrap>
-                    <v-flex v-for="o in t.options" :key="o" xs3>
-                      <v-checkbox color="primary" :label="o" v-model="skuTemplate[i].options"
-                                  :value="o"/>
+
+                <v-text-field label="商品标题" v-model="goods.title" :counter="200" required
+                              :rules="[v => !!v || '商品标题不能为空']"/>
+                <v-text-field label="商品卖点" v-model="goods.subTitle" :counter="200"/>
+                <v-text-field label="包装清单" v-model="goods.spuDetail.packingList" :counter="1000" multi-line :rows="3"/>
+                <v-text-field label="售后服务" v-model="goods.spuDetail.afterService" :counter="1000" multi-line :rows="3"/>
+                <v-layout row>
+                  <v-flex xs3>
+                  </v-flex>
+                  <v-flex>
+                  </v-flex>
+                </v-layout>
+              </v-form>
+            </v-flex>
+          </v-layout>
+        </v-stepper-content>
+        <!--商品描述-->
+        <v-stepper-content step="2">
+          <v-editor v-model="goods.spuDetail.description" uploadUrl="/upload/image" :options="editorOption"/>
+        </v-stepper-content>
+        <!--规格参数-->
+        <v-stepper-content step="3">
+          <v-flex offset-xs1 xs10>
+            <v-card v-for="(spec, i1) in specifications" :key="i1" class="my-2" v-if="!spec.empty">
+              <v-card-title><h4>{{spec.group}}</h4></v-card-title>
+              <v-divider/>
+              <v-layout column justify-center>
+                <v-flex v-for="(param,i2) in spec.params" :key="i2" xs8>
+                  <v-layout v-if="param.global" row>
+                    <v-flex offset-xs2 xs8>
+                      <v-text-field v-if="param.options.length <= 0" :suffix="param.unit || ''"
+                                    v-model="param.v" :label="param.k"/>
+                      <v-select v-else :label="param.k" v-model="param.v" :items="param.options"/>
                     </v-flex>
                   </v-layout>
-                </v-container>
+                </v-flex>
+              </v-layout>
+            </v-card>
+          </v-flex>
+        </v-stepper-content>
+        <!--SKU属性-->
+        <v-stepper-content step="4">
+          <v-layout column>
+            <h3>sku属性：</h3>
+            <v-divider/>
+            <v-flex offset-xs1>
+              <div v-for="(t,i) in template" :key="i">
+                <h4>{{t.k}}:</h4>
+                <div class="px-5" v-if="t.options.length <= 0">
+                  <!--默认项-->
+                  <v-layout row>
+                    <v-flex xs8>
+                      <v-text-field :label="`请输入新的${t.k}`" v-model="skuTemplate[i].options[0]"/>
+                    </v-flex>
+                    <v-spacer/>
+                    <v-flex xs1>
+                      <v-btn icon small @click="deleteOption(i,0)"><i class="el-icon-delete"></i></v-btn>
+                    </v-flex>
+                  </v-layout>
+                  <!--其他项-->
+                  <v-layout row v-for="i2 in skuTemplate[i].options.length" :key="i2">
+                    <v-flex xs8>
+                      <v-text-field :label="`请输入新的${t.k}`" v-model="skuTemplate[i].options[i2]"/>
+                    </v-flex>
+                    <v-spacer/>
+                    <v-flex xs1>
+                      <v-btn icon small @click="deleteOption(i,i2)"><i class="el-icon-delete"></i></v-btn>
+                    </v-flex>
+                  </v-layout>
+                </div>
+                <div class="px-5" v-else>
+                  <v-container fluid grid-list-xs>
+                    <v-layout row wrap>
+                      <v-flex v-for="o in t.options" :key="o" xs3>
+                        <v-checkbox color="primary" :label="o" v-model="skuTemplate[i].options"
+                                    :value="o"/>
+                      </v-flex>
+                    </v-layout>
+                  </v-container>
+                </div>
               </div>
-            </div>
-          </v-flex>
-          <v-divider/>
-          <!--sku列表-->
-          <h3>sku列表：</h3>
-          <v-flex>
-            <v-data-table
-              :headers="headers"
-              :items="skus"
-              hide-actions
-              class="elevation-2"
-              item-key="indexes"
-            >
-              <!-- 表单每行样式 -->
-              <template slot="items" slot-scope="props">
-                <tr @click="props.expanded = !props.expanded">
-                  <td class="text-xs-center" v-for="[k,v] in Object.entries(props.item)" :key="k"
-                      v-if="!['id','price','stock','enable','indexes','images'].includes(k)"
-                  >{{v}}
-                  </td>
-                  <td class="text-xs-center">
-                    <v-text-field single-line label="0" v-model="props.item.price"
-                                  :rules="[val => /^([1-9]\d*)\.?(\d{0,2})$/.test(val) || '价格格式错误']"/>
-                  </td>
-                  <td class="text-xs-center">
-                    <v-text-field single-line label="0" v-model="props.item.stock"
-                                  :rules="[val => /^[1-9]\d*$/.test(val) || '库存必须是整数']"/>
-                  </td>
-                  <td class="text-xs-center">
-                    <v-checkbox v-model="props.item.enable"/>
-                  </td>
-                </tr>
-              </template>
-              <!--表单扩展项，当用户点击启用时才展开-->
-              <template v-if="props.item.enable" slot="expand" slot-scope="props" class="px-4">
-                <v-card flat class="pb-3">
-                  <v-card-title>为商品上传图片：</v-card-title>
-                  <v-card-text>
-                    <v-upload multiple url="/item/upload" v-model="props.item.images"/>
-                  </v-card-text>
-                </v-card>
-              </template>
-              <template slot="no-data">
-                <v-alert :value="true" color="warning" icon="warning">
-                  请至少选择一个商品属性
-                </v-alert>
-              </template>
-            </v-data-table>
-          </v-flex>
-        </v-layout>
-        <v-layout row>
-          <v-flex offset-xs5 xs2>
-            <v-btn color="primary" @click="submit">保存商品</v-btn>
-          </v-flex>
-        </v-layout>
-      </v-stepper-content>
-    </v-stepper-items>
-  </v-stepper>
+            </v-flex>
+            <v-divider/>
+            <!--sku列表-->
+            <h3>sku列表：</h3>
+            <v-flex>
+              <v-data-table
+                :headers="headers"
+                :items="skus"
+                hide-actions
+                class="elevation-2"
+                item-key="indexes"
+              >
+                <!-- 表单每行样式 -->
+                <template slot="items" slot-scope="props">
+                  <tr @click="props.expanded = !props.expanded">
+                    <td class="text-xs-center" v-for="[k,v] in Object.entries(props.item)" :key="k"
+                        v-if="!['id','price','stock','enable','indexes','images'].includes(k)"
+                    >{{v}}
+                    </td>
+                    <td class="text-xs-center">
+                      <v-text-field single-line label="0" v-model="props.item.price"
+                                    :rules="[val => /^([1-9]\d*)\.?(\d{0,2})$/.test(val) || '价格格式错误']"/>
+                    </td>
+                    <td class="text-xs-center">
+                      <v-text-field single-line label="0" v-model="props.item.stock"
+                                    :rules="[val => /^[1-9]\d*$/.test(val) || '库存必须是整数']"/>
+                    </td>
+                    <td class="text-xs-center">
+                      <v-checkbox v-model="props.item.enable"/>
+                    </td>
+                  </tr>
+                </template>
+                <!--表单扩展项，当用户点击启用时才展开-->
+                <template slot="expand" slot-scope="props" class="px-4">
+                  <v-card flat class="pb-3">
+                    <v-card-title>为商品上传图片：</v-card-title>
+                    <v-card-text>
+                      <v-upload multiple url="/upload/image" v-model="props.item.images"/>
+                    </v-card-text>
+                  </v-card>
+                </template>
+                <template slot="no-data">
+                  <v-alert :value="true" color="warning" icon="warning">
+                    请至少选择一个商品属性
+                  </v-alert>
+                </template>
+              </v-data-table>
+            </v-flex>
+          </v-layout>
+          <v-layout row>
+            <v-flex offset-xs5 xs2>
+              <v-btn color="primary" @click="submit">保存商品</v-btn>
+            </v-flex>
+          </v-layout>
+        </v-stepper-content>
+      </v-stepper-items>
+    </v-stepper>
+  </div>
 </template>
 
 <script>
@@ -210,7 +212,7 @@
             afterService: '',
             description: '',
             specTemplate: '',// sku属性模板的字符串格式
-            specifications:[]
+            specifications: []
           },
         },
       }
@@ -250,16 +252,17 @@
         this.goods['cid3'] = this.goods.categories[2].id;
         // 转为字符串保存
         const obj = {};
+        console.log(this.skuTemplate)
         this.skuTemplate.forEach(t => {
-          if(t.options.length > 0){
+          if (t.options.length > 0) {
             obj[t.k] = t.options;
           }
         })
+        console.log(obj)
         this.goods.spuDetail.specTemplate = JSON.stringify(obj);
 
         // 对全局规格参数进行深拷贝
-        const specs = [];
-        Object.deepCopy(this.specifications, specs);
+        const specs = Object.deepCopy(this.specifications);
         specs.forEach(({params}) => {
           params.forEach(p => {
             if (!p.global) {
@@ -281,12 +284,14 @@
             enable,
             title,
             images: images && images.length > 0 ? images.join(",") : "",
-            price : this.$format(price),
+            price: this.$format(price),
             ownSpec: JSON.stringify(skuSpecs),
             indexes,
-            stock: {stock}
+            stock: stock
           }
         })
+        console.log(this.goods)
+        console.log(this.skus)
         // 发起请求
         this.$http({
           url: "/item/goods",
@@ -312,7 +317,7 @@
             return;
           }
           // 实现数据回显
-          Object.deepCopy(val, this.goods)
+          this.goods = Object.deepCopy(val);
         }
       },
       'goods.categories': {
@@ -337,12 +342,12 @@
                   const p = params[j];
                   if (!p.global) {
                     this.template.push({
-                      k:p.k,
-                      options:p.options
+                      k: p.k,
+                      options: p.options
                     })
                     this.skuTemplate.push({
-                      k:p.k,
-                      options:[]
+                      k: p.k,
+                      options: []
                     });
                     x--;
                   }
@@ -382,7 +387,7 @@
           // 处理回显
           if (this.isEdit) {
             // 查询sku
-            this.$http.get("/item/goods/sku/list", {
+            this.$http.get("/item/sku/list", {
               params: {
                 id: this.goods.id
               }
@@ -393,7 +398,7 @@
                   if (sku.indexes === s.indexes) {
                     sku.id = s.id;
                     sku.price = this.$format(s.price);
-                    sku.stock = s.stock.stock;
+                    sku.stock = s.stock;
                     sku.images = s.images.split(",");
                     sku.enable = s.enable;
                   }
