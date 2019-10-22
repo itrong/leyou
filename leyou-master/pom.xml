@@ -9,6 +9,13 @@
         <module>ly-item</module>
         <module>ly-common</module>
         <module>ly-upload</module>
+        <module>ly-search</module>
+        <module>ly-goods-web</module>
+        <module>ly-user</module>
+        <module>ly-sms</module>
+        <module>ly-auth</module>
+        <module>ly-cart</module>
+        <module>ly-order</module>
     </modules>
     <!--继承spring-boot-starter-parent父工程-->
     <parent>

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -101,5 +102,24 @@ public class CategoryServiceImpl implements CategoryService {
         return this.categoryMapper.selectByIdList(ids).stream().map(Category::getName).collect(Collectors.toList());
     }
 
+
+    /**
+     * 根据分类id集合查询分类名称
+     */
+    @Override
+    public List<Category> queryCategoryByIds(List<Long> ids) {
+        return categoryMapper.selectByIdList(ids);
+    }
+
+    /**
+     * 根据3级分类id，查询1~3级的分类
+     */
+    @Override
+    public List<Category> queryAllByCid3(Long id) {
+        Category c3 = this.categoryMapper.selectByPrimaryKey(id);
+        Category c2 = this.categoryMapper.selectByPrimaryKey(c3.getParentId());
+        Category c1 = this.categoryMapper.selectByPrimaryKey(c2.getParentId());
+        return Arrays.asList(c1,c2,c3);
+    }
 
 }

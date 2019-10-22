@@ -2,6 +2,9 @@ package com.leyou.item.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.leyou.common.dto.CartDTO;
+import com.leyou.common.enums.ExceptionEnum;
+import com.leyou.common.exeception.LyException;
 import com.leyou.common.pojo.PageResult;
 import com.leyou.item.bo.SpuBo;
 import com.leyou.item.mapper.*;
@@ -9,13 +12,18 @@ import com.leyou.item.po.*;
 import com.leyou.item.service.CategoryService;
 import com.leyou.item.service.GoodsService;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import tk.mybatis.mapper.common.BaseMapper;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -45,11 +53,17 @@ public class GoodsServiceImpl implements GoodsService {
     @Autowired
     private StockMapper stockMapper;
 
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Autowired
+    private static final Logger logger = LoggerFactory.getLogger(GoodsServiceImpl.class);
+
     /**
      * 分页查询SPU
      */
     @Override
-    public PageResult<SpuBo> querySpuByPageAndSort(Integer page, Integer rows, String key,Boolean saleable) {
+    public PageResult<SpuBo> querySpuByPageAndSort(Integer page, Integer rows, String key, Boolean saleable) {
 
         // 1、查询SPU
         // 分页,最多允许查100条
@@ -89,7 +103,6 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
 
-
     /**
      * 新增商品
      */
@@ -108,6 +121,9 @@ public class GoodsServiceImpl implements GoodsService {
 
         // 保存sku和库存信息
         saveSkuAndStock(spuBo.getSkus(), spuBo.getId());
+
+        //发送消息
+        sendMessage(spuBo.getId(), "insert");
     }
 
 
@@ -135,13 +151,17 @@ public class GoodsServiceImpl implements GoodsService {
         return skus;
     }
 
+
+    /**
+     * 修改商品
+     */
     @Override
     @Transactional
     public void update(SpuBo spu) {
         // 查询以前sku
         List<Sku> skus = this.querySkuBySpuId(spu.getId());
         // 如果以前存在，则删除
-        if(!CollectionUtils.isEmpty(skus)) {
+        if (!CollectionUtils.isEmpty(skus)) {
             List<Long> ids = skus.stream().map(s -> s.getId()).collect(Collectors.toList());
             // 删除以前库存
             Example example = new Example(Stock.class);
@@ -166,6 +186,9 @@ public class GoodsServiceImpl implements GoodsService {
 
         // 更新spu详情
         this.spuDetailMapper.updateByPrimaryKeySelective(spu.getSpuDetail());
+
+        //发送消息
+        sendMessage(spu.getId(), "update");
     }
 
 
@@ -191,5 +214,79 @@ public class GoodsServiceImpl implements GoodsService {
             this.stockMapper.insert(stock);
         }
     }
+
+
+    /**
+     * 根据id查询商品信息
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public SpuBo queryGoodsById(Long id) {
+        /**
+         * 第一页所需信息如下：
+         * 1.商品的分类信息、所属品牌、商品标题、商品卖点（子标题）
+         * 2.商品的包装清单、售后服务
+         */
+        Spu spu = this.spuMapper.selectByPrimaryKey(id);
+        SpuDetail spuDetail = this.spuDetailMapper.selectByPrimaryKey(spu.getId());
+
+        Example example = new Example(Sku.class);
+        example.createCriteria().andEqualTo("spuId", spu.getId());
+        List<Sku> skuList = this.skuMapper.selectByExample(example);
+        List<Long> skuIdList = new ArrayList<>();
+        for (Sku sku : skuList) {
+            skuIdList.add(sku.getId());
+        }
+
+        List<Stock> stocks = this.stockMapper.selectByIdList(skuIdList);
+
+        for (Sku sku : skuList) {
+            for (Stock stock : stocks) {
+                if (sku.getId().equals(stock.getSkuId())) {
+                    sku.setStock(stock.getStock());
+                }
+            }
+        }
+        SpuBo spuBo = new SpuBo(spu.getBrandId(), spu.getCid1(), spu.getCid2(), spu.getCid3(), spu.getTitle(),
+                spu.getSubTitle(), spu.getSaleable(), spu.getValid(), spu.getCreateTime(), spu.getLastUpdateTime());
+        spuBo.setSpuDetail(spuDetail);
+        spuBo.setSkus(skuList);
+        return spuBo;
+    }
+
+
+    /**
+     * 发送消息到队列
+     */
+    private void sendMessage(Long id, String type) {
+        // 发送消息
+        try {
+            this.amqpTemplate.convertAndSend("item." + type, id);
+        } catch (Exception e) {
+            logger.error("{}商品消息发送异常，商品id：{}", type, id, e);
+        }
+    }
+
+    public Sku querySkuById(Long id) {
+        return this.skuMapper.selectByPrimaryKey(id);
+    }
+
+    @Transactional
+    public void decreaseStock(List<CartDTO> cartDTOS) {
+        for (CartDTO cartDTO : cartDTOS) {
+            int count = stockMapper.decreaseStock(cartDTO.getSkuId(), cartDTO.getNum());
+            if(count != 1){
+                throw new LyException(ExceptionEnum.STOCK_NOT_ENOUGH);
+            }
+        }
+    }
+
+    @Override
+    public List<Sku> querySkuByIds(List<Long> ids) {
+         return this.skuMapper.selectByIdList(ids);
+    }
+
 
 }

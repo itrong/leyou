@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.leyou.item.service</groupId>
+    <groupId>com.leyou.item</groupId>
     <artifactId>ly-item-service</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
@@ -50,7 +50,7 @@
         </dependency>
         <!--商品接口工程-->
         <dependency>
-            <groupId>com.leyou.item.interface</groupId>
+            <groupId>com.leyou.item</groupId>
             <artifactId>ly-item-interface</artifactId>
             <version>${leyou.latest.version}</version>
         </dependency>
@@ -59,11 +59,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!--amqp-rabbitmq-->
         <dependency>
-            <groupId>com.leyou.item.interface</groupId>
-            <artifactId>ly-item-interface</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
     </dependencies>
 

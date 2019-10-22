@@ -252,24 +252,25 @@
         this.goods['cid3'] = this.goods.categories[2].id;
         // 转为字符串保存
         const obj = {};
-        console.log(this.skuTemplate)
         this.skuTemplate.forEach(t => {
           if (t.options.length > 0) {
             obj[t.k] = t.options;
           }
         })
-        console.log(obj)
         this.goods.spuDetail.specTemplate = JSON.stringify(obj);
 
         // 对全局规格参数进行深拷贝
         const specs = Object.deepCopy(this.specifications);
+
         specs.forEach(({params}) => {
           params.forEach(p => {
             if (!p.global) {
-              p.options = this.skuTemplate[p.k];
+              p.options = obj[p.k];
             }
           })
         })
+
+
         // 处理全局规格参数
         this.goods.spuDetail.specifications = JSON.stringify(specs);
 
@@ -290,8 +291,7 @@
             stock: stock
           }
         })
-        console.log(this.goods)
-        console.log(this.skus)
+
         // 发起请求
         this.$http({
           url: "/item/goods",
@@ -316,7 +316,6 @@
           if (val == null || !this.isEdit) {
             return;
           }
-          // 实现数据回显
           this.goods = Object.deepCopy(val);
         }
       },
@@ -387,7 +386,7 @@
           // 处理回显
           if (this.isEdit) {
             // 查询sku
-            this.$http.get("/item/sku/list", {
+            this.$http.get("/item/goods/sku/list", {
               params: {
                 id: this.goods.id
               }

@@ -17,4 +17,6 @@ public interface BrandService {
     void deleteBrand(Long id);
 
     List<Brand> queryByCategoryId(Long id);
+
+    List<Brand> queryBrandByIds(List<Long> ids);
 }

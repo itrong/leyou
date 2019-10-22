@@ -171,7 +171,7 @@
       editItem(item) {
 
         // 查询商品详情
-        this.$http.get("/item/spu/detail/" + item.id)
+        this.$http.get("/item/goods/spu/detail/" + item.id)
           .then(resp => {
 
             this.selectedGoods = item;
@@ -208,7 +208,7 @@
       getDataFromApi() {
         this.loading = true;
         // 发起请求
-        this.$http.get("/item/spu/page", {
+        this.$http.get("/item/goods/spu/page", {
           params: {
             key: this.search.key, // 搜索条件
             saleable: this.search.saleable, // 上下架

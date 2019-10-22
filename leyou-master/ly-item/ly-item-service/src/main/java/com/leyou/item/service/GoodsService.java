@@ -1,10 +1,12 @@
 package com.leyou.item.service;
 
+import com.leyou.common.dto.CartDTO;
 import com.leyou.common.pojo.PageResult;
 import com.leyou.item.bo.SpuBo;
 import com.leyou.item.po.Sku;
 import com.leyou.item.po.SpuDetail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface GoodsService {
@@ -37,4 +39,12 @@ public interface GoodsService {
      * 编辑商品
      */
     void update(SpuBo spuBo);
+
+    SpuBo queryGoodsById(Long id);
+
+    Sku querySkuById(Long id);
+
+    void decreaseStock(List<CartDTO> cartDTOS);
+
+    List<Sku> querySkuByIds(List<Long> ids);
 }

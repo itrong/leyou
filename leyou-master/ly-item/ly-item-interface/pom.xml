@@ -9,11 +9,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.leyou.item.interface</groupId>
+    <groupId>com.leyou.item</groupId>
     <artifactId>ly-item-interface</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <dependencies>
+        <!--webmvc-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>5.0.6.RELEASE</version>
+        </dependency>
         <dependency>
             <!--给数据库表对应的实体类添加注解-->
             <groupId>javax.persistence</groupId>

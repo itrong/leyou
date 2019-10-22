@@ -4,4 +4,5 @@ import com.leyou.item.po.Spu;
 import tk.mybatis.mapper.common.Mapper;
 
 public interface SpuMapper extends Mapper<Spu> {
+
 }

@@ -18,8 +18,15 @@ zuul:
   retryable: true
   routes:
     item-service: /item/**  #商品微服务
+    search-service: /search/** #搜索微服务
+    user-service: /user/** #用户微服务
+    auth-service: /auth/** # 授权中心微服务
+    cart-service: /cart/** # 购物车微服务
+    order-service: /order/** # 订单微服务
   ignored-services:
     - upload-service # 忽略upload-service服务
+  sensitive-headers: #把敏感头设置为null
+  add-host-header: true
 ribbon:
   ConnectTimeout: 250 # 连接超时时间(ms)
   ReadTimeout: 2000 # 通信超时时间(ms)
@@ -33,5 +40,17 @@ hystrix:
         isolation:
           thread:
             timeoutInMillisecond: 10000 # 熔断超时时长：10000ms
+leyou:
+  jwt:
+    pubKeyPath:  E:\\tmp\\rsa.pub # 公钥地址
+    cookieName: LY_TOKEN # cookie的名称
+  filter:
+    allowPaths:
+      - /api/auth
+      - /api/search
+      - /api/user/register
+      - /api/user/check
+      - /api/user/code
+      - /api/item
 
 

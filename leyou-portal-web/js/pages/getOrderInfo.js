@@ -10,7 +10,5 @@ $(function(){
 	$(".addr-item .name").click(function(){
 		 $(this).toggleClass("selected").siblings().removeClass("selected");	
 	});
-	$(".payType li").click(function(){
-		 $(this).toggleClass("selected").siblings().removeClass("selected");	
-	});
+
 })

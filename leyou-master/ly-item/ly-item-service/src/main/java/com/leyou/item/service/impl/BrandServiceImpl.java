@@ -112,4 +112,10 @@ public class BrandServiceImpl implements BrandService {
     }
 
 
+    /**
+     * 根据多个id查询品牌
+     */
+    public List<Brand> queryBrandByIds(List<Long> ids) {
+        return this.brandMapper.selectByIdList(ids);
+    }
 }
